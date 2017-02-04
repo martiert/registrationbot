@@ -1,0 +1,2 @@
+aiohttp==1.2.0
+ciscosparkapi==0.4.2
