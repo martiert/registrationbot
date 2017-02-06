@@ -1,2 +1,3 @@
-aiohttp==1.2.0
-ciscosparkapi==0.4.2
+aiohttp
+ciscosparkapi
+pymongo
