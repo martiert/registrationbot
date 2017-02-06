@@ -47,6 +47,8 @@ Since I also need to get notified when I get a message I use aiohttp (https://ai
 (https://docs.python.org/3/library/asyncio-dev.html), to create a webserver that listens to these message.
 
 To save the registered data I use mongodb (https://mongodb.com), with the pymongodb Python api (https://api.mongodb.com/python/current).
+
+If you want to see my source code, have a look at: https://github.com/martiert/registrationbot.git
 '''
 
     await loop.run_in_executor(
