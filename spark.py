@@ -36,16 +36,7 @@ class Server:
     async def cleanup(self):
         await self._remove_webhooks()
 
-    async def _message_created(self, webhook_data):
-        if webhook_data['data']['personId'] == self._id:
-            return
-
-        message = await self._loop.run_in_executor(
-            None,
-            self._api.messages.get,
-            webhook_data['data']['id'],
-        )
-
+    async def _handle_message(self, message):
         text = message.text
         await self._pre_message(self._loop, self._api, message)
         callbacks = [c for c in self._callbacks if c[0].match(text.lower())]
@@ -59,6 +50,32 @@ class Server:
             )
         else:
             await self._default_message(self._loop, self._api, message)
+
+    async def _message_created(self, webhook_data):
+        if webhook_data['data']['personId'] == self._id:
+            return
+
+        message = await self._loop.run_in_executor(
+            None,
+            self._api.messages.get,
+            webhook_data['data']['id'],
+        )
+
+        await self._handle_message(message)
+
+    async def _room_created(self, webhook_data):
+        if webhook_data['data']['type'] == 'group':
+            return
+
+        roomid = webhook_data['data']['id']
+        messages = await self._loop.run_in_executor(
+            None,
+            self._api.messages.list,
+            roomid,
+        )
+
+        for message in messages:
+            await self._handle_message(message)
 
     async def _webhook_notified(self, request):
         data = await request.json()
@@ -93,6 +110,12 @@ class Server:
                 'created',
                 self._message_created,
             )
+        await self._create_webhook(
+            'room created',
+            'rooms',
+            'created',
+            self._room_created,
+        )
 
     async def _create_webhook(self, name, resource, event, callback):
         self._hooks[name] = callback
