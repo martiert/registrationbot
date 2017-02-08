@@ -18,6 +18,7 @@ class Server:
         self._hooks = {}
         self._default_message = dummy
         self._pre_message = dummy
+        self._messages = []
 
     def listen(self, match, callback):
         self._callbacks.append((re.compile(match), callback))
@@ -37,6 +38,11 @@ class Server:
         await self._remove_webhooks()
 
     async def _handle_message(self, message):
+        if message.id in self._messages:
+            return
+
+        self._messages.append(message.id)
+
         text = message.text
         await self._pre_message(self._loop, self._api, message)
         callbacks = [c for c in self._callbacks if c[0].match(text.lower())]
